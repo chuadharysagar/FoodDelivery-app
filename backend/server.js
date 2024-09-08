@@ -3,7 +3,6 @@ import cors from 'cors'
 import { connectDB } from './config/db.js';
 import foodRouter from './routes/foodRoute.js';
 
-// mongodb+srv://saagarchaudhari302:DeploymentProject@cluster0.hsdo2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
 // app config
 const app = express();
