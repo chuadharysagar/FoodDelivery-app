@@ -2,6 +2,6 @@ import mongoose from "mongoose";
 
 
 export const connectDB = async () => {
-   await mongoose.connect('your mongodb string key').then(() => { console.log("DB connected") }
+   await mongoose.connect('add your mongodb key here').then(() => { console.log("DB connected") }
    )
 }
