@@ -26,11 +26,11 @@ A full-stack food delivery platform with a responsive UI, secure authentication,
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/food-delivery-platform.git
+   https://github.com/chuadharysagar/FoodDelivery-app.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd food-delivery-platform
+   cd FoodDelivery-app
    ```
 3. Install dependencies:
    ```bash
