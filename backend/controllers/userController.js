@@ -1,81 +1,82 @@
 import userModel from "../models/userModel.js";
-import jwt from "jsonwebtoken"
-import bcrypt from 'bcrypt'
-import validator from 'validator'
-import { connect } from "mongoose";
-import "dotenv/config"
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import validator from "validator";
+import "dotenv/config";
 
-// Login user
-const loginUser = async (req, res) => {
-   const { email, password } = req.body;
+// Function to create JWT token
+const createToken = (id) => {
+   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" }); // Added expiration time
+};
 
-   try {
-      const user = await userModel.findOne({email});
-
-      if (!user) {
-         res.json({ success: false, message: "User Does not exists" });
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-         res.json({ success: false, message: "Inavlid credintials" });
-      }
-
-      // is password match return token
-      const token = creatToken(user._id);
-      return res.json({success:true ,token});
-
-   } catch (error) {
-       console.log(error);
-       res.json({success:false,message:"Error"});
-   }
-}
-
-// data incription crete token
-const creatToken = (id) => {
-   return jwt.sign({ id }, process.env.JWT_SECRET);
-}
-
-// REGISTER NEW USER
+// 🟢 REGISTER NEW USER
 const registerUser = async (req, res) => {
    const { name, password, email } = req.body;
 
    try {
-      // if the user is alreay exists
+      // Check if the user already exists
       const exists = await userModel.findOne({ email });
       if (exists) {
-         return res.json({ success: false, message: "User already exits" });
+         return res.status(400).json({ success: false, message: "User already exists" });
       }
 
-      // validating email format and strong password
+      // Validate email format
       if (!validator.isEmail(email)) {
-         return res.json({ success: false, message: "Please enter valid email" })
+         return res.status(400).json({ success: false, message: "Please enter a valid email" });
       }
 
-      // Strenth of the password 
+      // Validate password strength
       if (password.length < 8) {
-         res.json({ success: false, message: "Pleaase Enter a strong password" });
+         return res.status(400).json({ success: false, message: "Please enter a strong password (min 8 chars)" });
       }
 
-      // Now encrypt use password hashing 
-      const salt = await bcrypt.genSalt(10);  //  generate some random values 
-      const hashedPassword = await bcrypt.hash(password, salt);  // adding some random values or salt to password
+      // Hash password before saving
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-      const newUser = userModel({
-         name: name,
-         email: email,
+      // Create user
+      const newUser = new userModel({
+         name,
+         email,
          password: hashedPassword,
-      })
+      });
 
-      const user = await (newUser.save());
-      const token = creatToken(user._id);
+      const user = await newUser.save();
+      const token = createToken(user._id);
 
-      res.json({ success: true, token });
+      return res.status(201).json({ success: true, token });
+
    } catch (error) {
-      console.log(error);
-      res.json({ success: false, message: "Error" });
+      console.error("Register Error:", error);
+      return res.status(500).json({ success: false, message: "Server error" });
    }
-}
+};
 
+// 🟢 LOGIN USER
+const loginUser = async (req, res) => {
+   const { email, password } = req.body;
+
+   try {
+      const user = await userModel.findOne({ email });
+
+      if (!user) {
+         return res.status(400).json({ success: false, message: "User does not exist" });
+      }
+
+      // Check password match
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+         return res.status(401).json({ success: false, message: "Invalid credentials" });
+      }
+
+      // Generate and return token
+      const token = createToken(user._id);
+      return res.status(200).json({ success: true, token });
+
+   } catch (error) {
+      console.error("Login Error:", error);
+      return res.status(500).json({ success: false, message: "Server error" });
+   }
+};
 
 export { loginUser, registerUser };
